@@ -12,9 +12,13 @@ interface TagListProps {
 
 export default function TagList({ tags, isManager }: TagListProps) {
     return (
-        <div className="flex items-center justify-start gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 pb-2">
             {tags.map((tag, i) => (
-                <TagItem key={i} tag={tag} isManager={isManager} />
+                <TagItem 
+                    key={i} 
+                    tag={tag} 
+                    isManager={isManager}
+                />
             ))}
         </div>
     );

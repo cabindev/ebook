@@ -22,24 +22,29 @@ export default function Search() {
     };
 
     return (
-        <div className="grid w-full grid-cols-4 gap-2 sm:w-56">
-            <Input
-                className="col-span-3"
-                placeholder="ค้นหา"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                        handleSearch();
-                    }
-                }}
-            />
-            <Button
-                onClick={handleSearch}
-                className="col-span-1 flex items-center justify-center"
-            >
-                <MagnifyingGlassIcon className="size-5" />
-            </Button>
+        <div className="flex justify-center w-full">
+            <div className="relative w-full max-w-xl">
+                <Input
+                    className="w-full pl-4 pr-12 py-3 rounded-lg border border-gray-200 
+                              focus:border-amber-500 focus:ring-2 focus:ring-amber-100 
+                              transition-colors shadow-sm"
+                    placeholder="ค้นหาหนังสือ..."
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            handleSearch();
+                        }
+                    }}
+                />
+                <Button
+                    onClick={handleSearch}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md
+                              bg-amber-500 hover:bg-amber-600 text-white transition-colors"
+                >
+                    <MagnifyingGlassIcon className="size-5" />
+                </Button>
+            </div>
         </div>
     );
 }

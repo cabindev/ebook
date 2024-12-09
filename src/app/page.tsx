@@ -23,7 +23,7 @@ export default async function page({ searchParams }: PageProps) {
     return (
         <Wrapper className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
-                <Heading>หนังสือทั้งหมด</Heading>
+               
                 <Search />
             </div>
 
