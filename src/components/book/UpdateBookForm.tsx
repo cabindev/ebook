@@ -45,7 +45,7 @@ export default function UpdateBookForm({ book, tags }: UpdateBookFormProps) {
 
     return (
         <form action={handleAction} className="space-y-4">
-            <Heading>เเเก้ไขหนังสือ</Heading>
+            <Heading>แก้ไขหนังสือ</Heading>
 
             {/* bookId */}
             <Input type="hidden" name="bookId" defaultValue={book.id} />

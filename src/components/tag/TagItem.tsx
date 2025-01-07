@@ -20,11 +20,12 @@ export default function TagItem({ tag, isManager }: TagItemProps) {
         <Link
             href={tagPath}
             className={cn(
-                "min-w-16 rounded-full border bg-gray-100 px-4 py-1 font-medium text-gray-500 shadow-sm",
-                { "cursor-not-allowed": isBookEmpty && !isManager },
+                "min-w-16 rounded-full border bg-amber-50 px-3 py-1 text-sm text-gray-600 shadow-sm transition hover:bg-amber-100",
+                { "cursor-not-allowed opacity-75": isBookEmpty && !isManager },
             )}
         >
-            {tag.title} ({tag.books.length})
+            <span className="font-normal">{tag.title}</span>{" "}
+            <span className="text-gray-500">({tag.books.length})</span>
         </Link>
-    );
+     );
 }

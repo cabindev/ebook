@@ -23,11 +23,11 @@ export default function Search() {
 
     return (
         <div className="flex justify-center w-full">
-            <div className="relative w-full max-w-xl">
+            <div className="relative w-full max-w-md">
                 <Input
-                    className="w-full pl-4 pr-12 py-3 rounded-lg border border-gray-200 
-                              focus:border-amber-500 focus:ring-2 focus:ring-amber-100 
-                              transition-colors shadow-sm"
+                    className="w-full pl-3 pr-10 py-2 rounded-lg border border-gray-200 
+                              text-sm focus:border-amber-500 focus:ring-2 
+                              focus:ring-amber-100 transition-colors shadow-sm"
                     placeholder="ค้นหาหนังสือ..."
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
@@ -39,12 +39,12 @@ export default function Search() {
                 />
                 <Button
                     onClick={handleSearch}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md
                               bg-amber-500 hover:bg-amber-600 text-white transition-colors"
                 >
-                    <MagnifyingGlassIcon className="size-5" />
+                    <MagnifyingGlassIcon className="size-4" />
                 </Button>
             </div>
         </div>
-    );
+     );
 }

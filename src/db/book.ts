@@ -21,7 +21,7 @@ export async function getBooksWithPagination({
         where: { OR: [{ title: { contains: search } }] },
         skip: (pageInt - 1) * limitInt,
         take: limitInt,
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: "desc" },
     });
 
     const totalCount = await prisma.book.count({
