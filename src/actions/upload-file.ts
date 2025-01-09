@@ -18,7 +18,7 @@
 // }
 "use server";
 
-import { writeFile } from "fs/promises";
+import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { randomUUID } from "crypto";
 
@@ -28,9 +28,13 @@ export async function uploadFile(file: File, type: "images" | "pdfs") {
         const extension = file.name.split('.').pop();
         const uniqueFileName = `${randomUUID()}.${extension}`;
         
-        // สร้าง path สำหรับบันทึกไฟล์
-        const filePathDir = join(process.cwd(), "public", "ebookPDF", uniqueFileName);
-        const filePath = `/ebookPDF/${uniqueFileName}`;
+        // สร้าง path ตาม type ที่กำหนด
+        const dirPath = join(process.cwd(), "public", type);
+        const filePathDir = join(dirPath, uniqueFileName);
+        const filePath = `/${type}/${uniqueFileName}`;
+        
+        // สร้างโฟลเดอร์ถ้ายังไม่มี
+        await mkdir(dirPath, { recursive: true });
         
         // แปลงไฟล์และบันทึก
         const arrayBuffer = await file.arrayBuffer();
