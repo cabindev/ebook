@@ -1,22 +1,29 @@
+"use client";
+
 import Button from "./Button";
 import { ReactNode } from "react";
-import { useFormStatus } from "react-dom";
 import { cn } from "~/libs";
 
 interface SubmitProps {
     children: ReactNode;
     className?: string;
+    isLoading?: boolean;
+    loadingText?: string;
 }
 
-export default function Submit({ children, className }: SubmitProps) {
-    const { pending } = useFormStatus();
-
+export default function Submit({ 
+    children, 
+    className, 
+    isLoading = false,
+    loadingText = "กำลังดำเนินการ..." 
+}: SubmitProps) {
     return (
         <Button
-            disabled={pending}
+            type="submit"
+            disabled={isLoading}
             className={cn("w-full disabled:cursor-progress", className)}
         >
-            {children}
+            {isLoading ? loadingText : children}
         </Button>
     );
 }
