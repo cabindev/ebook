@@ -1,12 +1,13 @@
 "use server";
 
+import { z } from "zod";
 import prisma from "~/prisma";
 import { redirect } from "next/navigation";
 import { getSession } from "~/libs";
-import { createBookSchema, updateBookSchema } from "~/schemas";
 import { uploadFile } from "./upload-file";
+import { createBookSchema, updateBookSchema } from "~/schemas";
 
-export async function createBookAction(_: any, formData: FormData) {
+export async function createBookAction(formData: FormData) {
     const session = await getSession();
     if (!session.isManager) {
         return {
@@ -14,36 +15,77 @@ export async function createBookAction(_: any, formData: FormData) {
             message: "ไม่ได้รับอนุญาต",
         };
     }
-
-    let isSuccess: boolean = false;
-
+ 
     try {
-        const formRaw = Object.fromEntries(formData);
-        const validated = createBookSchema.parse(formRaw);
-
-        const { title, tagId, imageFile, pdfFile } = validated;
+        // ดึงข้อมูลจาก formData
+        const title = formData.get('title') as string;
+        const tagId = formData.get('tagId') as string;
+        const imageFile = formData.get('imageFile') as File;
+        const pdfFile = formData.get('pdfFile') as File;
+ 
+        console.log('Form data:', { title, tagId, imageFile, pdfFile });
+ 
+        if (!title || !tagId || !imageFile || !pdfFile) {
+            return {
+                success: false,
+                message: "กรุณากรอกข้อมูลให้ครบถ้วน",
+            };
+        }
+ 
+        // เช็คว่ามีชื่อหนังสือซ้ำไหม
+        const existingBook = await prisma.book.findUnique({
+            where: { title }
+        });
+ 
+        if (existingBook) {
+            return {
+                success: false,
+                message: "มีหนังสือชื่อนี้ในระบบแล้ว",
+            };
+        }
+ 
+        console.log('Uploading files...');
         const imageUrl = await uploadFile(imageFile, "images");
         const pdfUrl = await uploadFile(pdfFile, "pdfs");
-
-        await prisma.book.create({
+        console.log('Upload completed:', { imageUrl, pdfUrl });
+ 
+        console.log('Creating book...');
+        const newBook = await prisma.book.create({
             data: {
                 title,
-                imageUrl,
+                imageUrl, 
                 pdfUrl,
                 tagId,
             },
         });
-
-        isSuccess = true;
-    } catch (error) {
+        console.log('Book created:', newBook);
+ 
+        return {
+            success: true,
+            message: "เพิ่มหนังสือสำเร็จ",
+            redirect: "/manager/books"
+        };
+ 
+    } catch (error: any) {
+        console.error('Create book error:', {
+            message: error.message,
+            code: error.code,
+            stack: error.stack
+        });
+ 
+        if (error.code === 'P2002') {
+            return {
+                success: false,
+                message: "มีหนังสือชื่อนี้ในระบบแล้ว",
+            };
+        }
+ 
         return {
             success: false,
-            message: "เพิ่มหนังสือไม่สำเร็จ",
+            message: "เพิ่มหนังสือไม่สำเร็จ"
         };
     }
-
-    if (isSuccess) redirect("/manager/books/");
-}
+ }
 
 export async function updateBookAction(_: any, formData: FormData) {
     const session = await getSession();
@@ -75,7 +117,7 @@ export async function updateBookAction(_: any, formData: FormData) {
     } catch (error) {
         return {
             success: false,
-            message: "เเก้ไขหนังสือไม่สำเร็จ",
+            message: "แก้ไขหนังสือไม่สำเร็จ",
         };
     }
 
