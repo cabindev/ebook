@@ -5,26 +5,50 @@ import Label from "../Label";
 import Heading from "../Heading";
 import Submit from "../Submit";
 import Select from "../Select";
-import useToastNotification from "~/hooks/useToastNotification";
+import { useState } from "react";
+import toast from "react-hot-toast";
 import { member, role } from "@prisma/client";
 import { updateMemberAction } from "~/actions";
-import { useFormState } from "react-dom";
 import { parseRoleToText } from "~/utils";
+import { useRouter } from "next/navigation";
 
 interface UpdateMemberFormProps {
     member: member;
 }
 
 export default function UpdateMemberForm({ member }: UpdateMemberFormProps) {
-    const [state, formAction] = useFormState(updateMemberAction, null);
+    const router = useRouter();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useToastNotification(state as any);
+    async function handleSubmit(formData: FormData) {
+        try {
+            setIsSubmitting(true);
+            const result = await updateMemberAction(null, formData);
+            
+            if (result?.success === false) {
+                toast.error(result.message);
+            } else {
+                toast.success('แก้ไขสมาชิกสำเร็จ');
+                router.push('/manager/members');
+                router.refresh();
+            }
+        } catch (error) {
+            toast.error('แก้ไขสมาชิกไม่สำเร็จ');
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
 
     return (
-        <form action={formAction} className="space-y-4">
-            <Heading>เข้าสู่ระบบ</Heading>
+        <form 
+            onSubmit={async (e) => {
+                e.preventDefault();
+                await handleSubmit(new FormData(e.currentTarget));
+            }} 
+            className="space-y-4"
+        >
+            <Heading>แก้ไขสมาชิก</Heading>
 
-            {/* memberId */}
             <Input type="hidden" name="memberId" defaultValue={member.id} />
 
             <div className="space-y-2">
@@ -34,6 +58,7 @@ export default function UpdateMemberForm({ member }: UpdateMemberFormProps) {
                     id="name"
                     name="name"
                     required
+                    placeholder="ระบุชื่อ"
                     defaultValue={member.name}
                 />
             </div>
@@ -45,6 +70,7 @@ export default function UpdateMemberForm({ member }: UpdateMemberFormProps) {
                     id="email"
                     name="email"
                     required
+                    placeholder="example@email.com"
                     defaultValue={member.email}
                 />
             </div>
@@ -60,7 +86,13 @@ export default function UpdateMemberForm({ member }: UpdateMemberFormProps) {
                 </Select>
             </div>
 
-            <Submit>ยืนยัน</Submit>
+            <Submit 
+                isLoading={isSubmitting}
+                loadingText="กำลังแก้ไข..."
+                className="bg-amber-500 hover:bg-amber-600 text-white"
+            >
+                บันทึก
+            </Submit>
         </form>
     );
 }
