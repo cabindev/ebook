@@ -16,23 +16,26 @@
 //         throw new Error("Upload file error");
 //     }
 // }
-
 "use server";
 
 import { writeFile } from "fs/promises";
 import { join } from "path";
+import { randomUUID } from "crypto";
 
 export async function uploadFile(file: File, type: "images" | "pdfs") {
     try {
-        const fileName = file.name.replace(/\s+/g, "_"); // Replace all spaces with underscore
-        const filePathDir = join(process.cwd(), "public", "ebookPDF", fileName);
-        const filePath = `/ebookPDF/${fileName}`;
+        // สร้างชื่อไฟล์ใหม่ด้วย UUID และนามสกุลเดิม
+        const extension = file.name.split('.').pop();
+        const uniqueFileName = `${randomUUID()}.${extension}`;
         
-        // Convert File to buffer
+        // สร้าง path สำหรับบันทึกไฟล์
+        const filePathDir = join(process.cwd(), "public", "ebookPDF", uniqueFileName);
+        const filePath = `/ebookPDF/${uniqueFileName}`;
+        
+        // แปลงไฟล์และบันทึก
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
-        // Create file in public/ebookPDF directory
         await writeFile(filePathDir, buffer);
 
         return filePath;
