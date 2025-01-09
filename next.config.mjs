@@ -1,12 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-        domains: ['oaugjewc9whitxvv.public.blob.vercel-storage.com'],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'ebook.sdnthailand.com', 
+                port: '',
+                pathname: '/images/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'oaugjewc9whitxvv.public.blob.vercel-storage.com',
+                port: '',
+                pathname: '/images/**',
+            }
+        ],
     },
-    webpack: (config) => {
-        config.resolve.alias.canvas = false;
-        return config;
-    },
- };
- 
- export default nextConfig;
+};
+
+export default nextConfig;

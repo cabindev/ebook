@@ -17,15 +17,14 @@ export default function BookItem({ book, isManager }: BookItemProps) {
 
     return (
         <Link href={bookPath} onClick={() => addBookView({ id: book.id })}>
-            <Image
-                src={book.imageUrl}
-                alt={book.title}
-                width={0}
-                height={256}
-                className="h-64 w-auto rounded border object-cover"
-                sizes="(max-width: 768px) 100vw, 33vw"
-                priority={false}
-            />
+            <div className="relative h-64 w-full">
+                <Image
+                    src={book.imageUrl}
+                    alt={book.title}
+                    fill
+                    className="rounded border object-cover"
+                />
+            </div>
         </Link>
     );
 }
