@@ -10,157 +10,153 @@ import { createBookSchema, updateBookSchema } from "~/schemas";
 export async function createBookAction(formData: FormData) {
     const session = await getSession();
     if (!session.isManager) {
-        return {
-            success: false,
-            message: "ไม่ได้รับอนุญาต",
-        };
+        return { success: false, message: "ไม่ได้รับอนุญาต" };
     }
- 
+
     try {
-        // ดึงข้อมูลจาก formData
         const title = formData.get('title') as string;
         const tagId = formData.get('tagId') as string;
         const imageFile = formData.get('imageFile') as File;
         const pdfFile = formData.get('pdfFile') as File;
- 
-        console.log('Form data:', { title, tagId, imageFile, pdfFile });
- 
-        if (!title || !tagId || !imageFile || !pdfFile) {
-            return {
-                success: false,
-                message: "กรุณากรอกข้อมูลให้ครบถ้วน",
-            };
+
+        if (!title?.trim() || !tagId?.trim() || !imageFile || !pdfFile) {
+            return { success: false, message: "กรุณากรอกข้อมูลให้ครบถ้วน" };
         }
- 
-        // เช็คว่ามีชื่อหนังสือซ้ำไหม
+
         const existingBook = await prisma.book.findUnique({
-            where: { title }
+            where: { title: title.trim() }
         });
- 
+
         if (existingBook) {
-            return {
-                success: false,
-                message: "มีหนังสือชื่อนี้ในระบบแล้ว",
-            };
+            return { success: false, message: "มีหนังสือชื่อนี้ในระบบแล้ว" };
         }
- 
-        console.log('Uploading files...');
+
         const imageUrl = await uploadFile(imageFile, "images");
         const pdfUrl = await uploadFile(pdfFile, "pdfs");
-        console.log('Upload completed:', { imageUrl, pdfUrl });
- 
-        console.log('Creating book...');
-        const newBook = await prisma.book.create({
+
+        await prisma.book.create({
             data: {
-                title,
-                imageUrl, 
+                title: title.trim(),
+                imageUrl,
                 pdfUrl,
                 tagId,
             },
         });
-        console.log('Book created:', newBook);
- 
+
         return {
             success: true,
             message: "เพิ่มหนังสือสำเร็จ",
             redirect: "/manager/books"
         };
- 
-    } catch (error: any) {
-        console.error('Create book error:', {
-            message: error.message,
-            code: error.code,
-            stack: error.stack
-        });
- 
-        if (error.code === 'P2002') {
-            return {
-                success: false,
-                message: "มีหนังสือชื่อนี้ในระบบแล้ว",
-            };
-        }
- 
-        return {
-            success: false,
-            message: "เพิ่มหนังสือไม่สำเร็จ"
-        };
-    }
- }
 
-export async function updateBookAction(_: any, formData: FormData) {
+    } catch (error) {
+        console.error('Create book error:', error);
+        return { success: false, message: "เพิ่มหนังสือไม่สำเร็จ" };
+    }
+}
+
+export async function updateBookAction(formData: FormData) {
     const session = await getSession();
     if (!session.isManager) {
-        return {
-            success: false,
-            message: "ไม่ได้รับอนุญาต",
-        };
+        return { success: false, message: "ไม่ได้รับอนุญาต" };
     }
 
-    let isSuccess: boolean = false;
-
     try {
-        const formRaw = Object.fromEntries(formData);
-        const validated = updateBookSchema.parse(formRaw);
+        const bookId = formData.get('bookId') as string;
+        const title = formData.get('title') as string;
+        const tagId = formData.get('tagId') as string;
+        const imageFile = formData.get('imageFile') as File | null;
+        const pdfFile = formData.get('pdfFile') as File | null;
 
-        const { bookId, title, tagId, imageFile, pdfFile } = validated;
+        if (!bookId || !title?.trim() || !tagId) {
+            return { success: false, message: "กรุณากรอกข้อมูลให้ครบถ้วน" };
+        }
 
-        let imageUrl, pdfUrl;
-        if (imageFile) imageUrl = await uploadFile(imageFile, "images");
-        if (pdfFile) pdfUrl = await uploadFile(pdfFile, "pdfs");
+        const updateData: any = { 
+            title: title.trim(), 
+            tagId 
+        };
+
+        if (imageFile && imageFile.size > 0) {
+            updateData.imageUrl = await uploadFile(imageFile, "images");
+        }
+
+        if (pdfFile && pdfFile.size > 0) {
+            updateData.pdfUrl = await uploadFile(pdfFile, "pdfs");
+        }
 
         await prisma.book.update({
             where: { id: bookId },
-            data: { title, imageUrl, pdfUrl, tagId },
+            data: updateData
         });
 
-        isSuccess = true;
-    } catch (error) {
-        return {
-            success: false,
-            message: "แก้ไขหนังสือไม่สำเร็จ",
+        return { 
+            success: true, 
+            message: "แก้ไขหนังสือสำเร็จ", 
+            redirect: "/manager/books" 
         };
-    }
 
-    if (isSuccess) redirect("/manager/books/");
+    } catch (error) {
+        console.error('Update book error:', error);
+        return { success: false, message: "แก้ไขหนังสือไม่สำเร็จ" };
+    }
 }
 
-export async function deleteBook({ id }: { id: string }) {
+export async function deleteBook(id: string) {
     const session = await getSession();
-    if (!session.isManager) return;
+    if (!session.isManager) {
+        return { success: false, message: "ไม่ได้รับอนุญาต" };
+    }
 
     try {
         await prisma.book.delete({ where: { id } });
+        return { 
+            success: true, 
+            message: "ลบหนังสือสำเร็จ", 
+            redirect: "/manager/books" 
+        };
     } catch (error) {
-        return;
-    }
-
-    redirect("/manager/books");
-}
-
-export async function addBookView({ id }: { id: string }) {
-    try {
-        await prisma.book.update({
-            where: { id },
-            data: { views: { increment: 1 } },
-        });
-    } catch (error) {
-        return;
+        console.error('Delete book error:', error);
+        return { success: false, message: "ลบหนังสือไม่สำเร็จ" };
     }
 }
 
-export async function updateBookRating({
-    id,
-    stars,
-}: {
-    id: string;
-    stars: number;
-}) {
+export async function addBookView(idInput: string | { id: string }) {
+    // แปลง input เป็น string id
+    const id = typeof idInput === 'string' ? idInput : idInput.id;
+    
+    if (!id) return;
+
+    try {
+        const book = await prisma.book.findUnique({
+            where: { id }
+        });
+
+        if (!book) {
+            console.error('Book not found:', id);
+            return;
+        }
+
+        await prisma.book.update({
+            where: { id },
+            data: { 
+                views: { increment: 1 } 
+            }
+        });
+    } catch (error) {
+        console.error('Add view error:', error);
+    }
+}
+
+export async function updateBookRating({ id, stars }: { id: string; stars: number }) {
     try {
         await prisma.book.update({
             where: { id },
-            data: { rating: stars },
+            data: { rating: stars }
         });
+        return { success: true, message: "อัพเดทคะแนนสำเร็จ" };
     } catch (error) {
-        return;
+        console.error('Update rating error:', error);
+        return { success: false, message: "อัพเดทคะแนนไม่สำเร็จ" };
     }
 }

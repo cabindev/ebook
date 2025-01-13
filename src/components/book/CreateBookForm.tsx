@@ -61,14 +61,14 @@ export default function CreateBookForm({ tags }: CreateBookFormProps) {
    }
 
    return (
-       <form
-           ref={formRef}
-           onSubmit={async (e) => {
-               e.preventDefault();
-               await handleSubmit(new FormData(e.currentTarget));
-           }}
-           className="space-y-4"
-       >
+            <form 
+                ref={formRef} 
+                action={async (formData) => {
+                    await handleSubmit(formData);
+                }}
+                className="space-y-4"
+            >
+
            <Heading>เพิ่มหนังสือ</Heading>
 
            {/* ส่วนกรอกชื่อหนังสือ */}

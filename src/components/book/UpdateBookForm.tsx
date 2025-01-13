@@ -6,9 +6,10 @@ import Input from "../Input";
 import Label from "../Label";
 import Select from "../Select";
 import Submit from "../Submit";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { ChangeEvent, useRef, useState, useTransition } from "react";
-import { deleteBook, updateBookAction } from "~/actions";
+import { deleteBook,updateBookAction } from "~/actions/book";
 import { book, tag } from "@prisma/client";
 
 interface UpdateBookFormProps {
@@ -21,6 +22,7 @@ export default function UpdateBookForm({ book, tags }: UpdateBookFormProps) {
    const [imageFile, setImageFile] = useState<File | null>(null);
    const [pdfFile, setPdfFile] = useState<File | null>(null);
    const [isPending, startTransition] = useTransition();
+   const router = useRouter();
 
    function handleFileChange(
        event: ChangeEvent<HTMLInputElement>,
@@ -30,42 +32,47 @@ export default function UpdateBookForm({ book, tags }: UpdateBookFormProps) {
    }
 
    async function handleSubmit(formData: FormData) {
-       try {
-           // สร้าง FormData ใหม่
-           const data = new FormData();
-           data.append('bookId', formData.get('bookId') as string);
-           data.append('title', formData.get('title') as string);
-           data.append('tagId', formData.get('tagId') as string);
-           
-           if (imageFile) {
-               data.append('imageFile', imageFile);
-           }
-           if (pdfFile) {
-               data.append('pdfFile', pdfFile);
-           }
+    try {
+        // สร้าง FormData ใหม่
+        const data = new FormData();
+        data.append('bookId', formData.get('bookId') as string);
+        data.append('title', formData.get('title') as string);
+        data.append('tagId', formData.get('tagId') as string);
+        
+        if (imageFile) {
+            data.append('imageFile', imageFile);
+        }
+        if (pdfFile) {
+            data.append('pdfFile', pdfFile);
+        }
 
-           const result = await updateBookAction(null, data);
-           
-           if (result?.success === false) {
-               toast.error(result.message);
-           } else {
-               toast.success('แก้ไขหนังสือสำเร็จ');
-               formRef.current?.reset();
-               setImageFile(null);
-               setPdfFile(null);
-           }
-       } catch (error) {
-           toast.error('เกิดข้อผิดพลาดในการแก้ไขหนังสือ');
-       }
-   }
+        const result = await updateBookAction(data); // แก้จาก updateBookAction(null, data)
+        
+        if (result?.success === false) {
+            toast.error(result.message);
+        } else {
+            toast.success('แก้ไขหนังสือสำเร็จ');
+            formRef.current?.reset();
+            setImageFile(null);
+            setPdfFile(null);
+        }
+    } catch (error) {
+        toast.error('เกิดข้อผิดพลาดในการแก้ไขหนังสือ');
+    }
+}
 
-   async function handleDelete(e: React.MouseEvent) {
+async function handleDelete(e: React.MouseEvent) {
     e.preventDefault();
     
     startTransition(() => {
-        deleteBook({ id: book.id })
-            .then(() => {
-                toast.success('ลบหนังสือสำเร็จ');
+        deleteBook(book.id)
+            .then((result) => {
+                if (result.success) {
+                    toast.success('ลบหนังสือสำเร็จ');
+                    router.push('/manager/books');
+                } else {
+                    toast.error(result.message || 'เกิดข้อผิดพลาดในการลบหนังสือ');
+                }
             })
             .catch(() => {
                 toast.error('เกิดข้อผิดพลาดในการลบหนังสือ');

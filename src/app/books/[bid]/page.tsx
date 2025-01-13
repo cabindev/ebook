@@ -29,8 +29,7 @@ export default async function page({ params }: PageProps) {
 
     return (
         <Wrapper>
-            <PDFViewer file={book.pdfUrl} />
-
+            <PDFViewer pdfUrl={book.pdfUrl} />
             <div className="mt-8">
                 <BookRating bookId={book.id} initialValue={book.rating} />
             </div>
